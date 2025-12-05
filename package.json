@@ -1,6 +1,10 @@
 {
   "name": "nft_auction",
   "version": "1.0.0",
+  "scripts": {
+    "test": "hardhat test",
+    "coverage": "hardhat coverage"
+  },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
     "@nomicfoundation/hardhat-ethers": "^3.1.2",
