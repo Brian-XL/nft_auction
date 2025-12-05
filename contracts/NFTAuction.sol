@@ -2,8 +2,9 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol"
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
@@ -18,7 +19,7 @@ struct Auction {
     bool settled;
 }
 
-contract NFTAuction is Initializable, UUPSUpgradeable {
+contract NFTAuction is Initializable, UUPSUpgradeable, IERC721Receiver {
     address public admin;
     mapping(address => mapping(uint256 => Auction)) public auctions;
 
@@ -195,6 +196,16 @@ contract NFTAuction is Initializable, UUPSUpgradeable {
         emit AuctionSettled(nftAddr, tokenId, auction.highestBidder, auction.highestBid);
     }
 
+    // implement ERC721Receiver so this contract can receive NFTs via safeTransferFrom
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes calldata
+    ) external pure returns (bytes4) {
+        return IERC721Receiver.onERC721Received.selector;
+    }
+
 
     // 允许多种token出价，自动换算价值
     function bidWithOracle(address nftAddr, uint tokenId, address erc20, uint amount) external payable {
@@ -236,6 +247,12 @@ contract NFTAuction is Initializable, UUPSUpgradeable {
         (, int256 answer, , ,) = aggregator.latestRoundData();
 
         return amount * (uint256(answer) / 10 ** aggregator.decimals());
+    }
+
+    // admin helper to set data feeds for testing or configuration
+    function setFeed(address token, address feed) external {
+        require(msg.sender == admin, "not authorized");
+        feeds[token] = feed;
     }
 
 }
