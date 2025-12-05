@@ -41,6 +41,11 @@ contract NFTAuction is Initializable, UUPSUpgradeable, IERC721Receiver {
         require(msg.sender == admin, "not authorized");
     }
 
+    // test helper to exercise _authorizeUpgrade in tests (calls internal check)
+    function testAuthorizeUpgrade(address newImplementation) external view {
+        _authorizeUpgrade(newImplementation);
+    }
+
 
     // 创建拍卖
     function createAuction(
